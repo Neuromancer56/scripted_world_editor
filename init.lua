@@ -67,7 +67,7 @@ function fill_box(StartPosition, X_size, Y_size, Z_size, FillAlongAxis, ReplaceW
 		elseif PlaceLocation == 'T'   and FillAlongAxis == "Z" then --top of new box
 			place_position = {x = StartPosition.x + math.floor(X_size / 2), y = FillEndPositionY, z = StartPosition.z+PlacePosition }
 		elseif PlaceLocation == 'B'   and FillAlongAxis == "Z" then --top of new box
-			place_position = {x = StartPosition.x + math.floor(X_size / 2), y = FillEndPositionY, z = StartPosition.z+PlacePosition}
+			place_position = {x = StartPosition.x + math.floor(X_size / 2), y = StartPosition.y, z = StartPosition.z+PlacePosition}
 		end
 		minetest.log("x","x,y,z:"..place_position.x..","..place_position.y..","..place_position.z)
 		minetest.log("log", "PlaceNode: "..PlaceNode)
@@ -78,14 +78,14 @@ function fill_box(StartPosition, X_size, Y_size, Z_size, FillAlongAxis, ReplaceW
 end
 
 --local StartPosition = {x = 0, y = -10, z = 0}
-local X_size = 10
-local Y_size = 3
+local X_size = 3
+local Y_size = 8
 local Z_size = 3
-local FillAlongAxis = "X"
+local FillAlongAxis = "Y"
 local ReplaceWith = "default:stone"
 local PlaceNode = "default:cobble"
-local PlaceLocation = "T"
-local PlacePosition = 5
+local PlaceLocation = "B"
+local PlacePosition = 4
 
 minetest.register_node("scripted_world_editor:script_runner", {
     description = "Script Runner",
