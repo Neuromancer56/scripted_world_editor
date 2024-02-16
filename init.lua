@@ -1,5 +1,3 @@
-
-
 function fill_box(StartPosition, X_size, Y_size, Z_size, FillAlongAxis, ReplaceWith, PlaceNode, PlaceLocation, PlacePosition)
     minetest.log("log","start")
 	local EndPosition = vector.new(StartPosition.x, StartPosition.y, StartPosition.z)
@@ -40,35 +38,61 @@ function fill_box(StartPosition, X_size, Y_size, Z_size, FillAlongAxis, ReplaceW
 				end
 			end
 		end
-	
+	if(PlaceNode ~= nil and PlaceLocation ~= nil and PlacePosition ~= nil) then
     -- Place the special single node at the specified location
-    local place_position
-    if PlaceLocation == 'T' then  --top of new box
-        place_position = vector.new(StartPosition.x + math.floor(X_size / 2), EndPosition.y, StartPosition.z + math.floor(Z_size / 2))
-    elseif PlaceLocation == 'B' then  --bottom of new box
-        place_position = vector.new(StartPosition.x + math.floor(X_size / 2), StartPosition.y, StartPosition.z + math.floor(Z_size / 2))
-    end
-
-    minetest.set_node(place_position, {name = PlaceNode})
+		local place_position
+		--[[
+		if PlaceLocation == 'T' and FillAlongAxis == "Y" then  --top of new box
+			place_position = vector.new(FillEndPositionX, StartPosition.y + (PlacePosition), StartPosition.z + math.floor(Z_size / 2))
+		elseif PlaceLocation == 'B' and FillAlongAxis == "Y" then  --top of new box
+			place_position = vector.new(StartPosition.x, StartPosition.y + (PlacePosition), StartPosition.z + math.floor(Z_size / 2))
+		elseif PlaceLocation == 'T'   and FillAlongAxis == "X" then --top of new box
+			place_position = vector.new(FillEndPositionX + PlacePosition, FillEndPositionY, StartPosition.z + math.floor(Z_size / 2))
+		elseif PlaceLocation == 'B'   and FillAlongAxis == "X" then --top of new box
+			place_position = vector.new(StartPosition.x + PlacePosition, StartPosition.y, StartPosition.z + math.floor(Z_size / 2))
+		elseif PlaceLocation == 'T'   and FillAlongAxis == "Z" then --top of new box
+			place_position = vector.new( StartPosition.x + math.floor(X_size / 2), FillEndPositionY, FillEndPositionZ)
+		elseif PlaceLocation == 'B'   and FillAlongAxis == "Z" then --top of new box
+			place_position = vector.new( StartPosition.x + math.floor(X_size / 2), FillEndPositionY, StartPosition.z)
+		end
+		]]
+		if PlaceLocation == 'T' and FillAlongAxis == "Y" then  --top of new box
+			place_position = {x = FillEndPositionX, y = StartPosition.y + (PlacePosition), z = StartPosition.z + math.floor(Z_size / 2)}
+		elseif PlaceLocation == 'B' and FillAlongAxis == "Y" then  --top of new box
+			place_position = {x = StartPosition.x, y = StartPosition.y + (PlacePosition), z = StartPosition.z + math.floor(Z_size / 2)}
+		elseif PlaceLocation == 'T'   and FillAlongAxis == "X" then --top of new box
+			place_position = {x = StartPosition.x + PlacePosition, y = FillEndPositionY, z = StartPosition.z + math.floor(Z_size / 2)}
+		elseif PlaceLocation == 'B'   and FillAlongAxis == "X" then --top of new box
+			place_position = {x = StartPosition.x + PlacePosition, y = StartPosition.y, z = StartPosition.z + math.floor(Z_size / 2)}
+		elseif PlaceLocation == 'T'   and FillAlongAxis == "Z" then --top of new box
+			place_position = {x = StartPosition.x + math.floor(X_size / 2), y = FillEndPositionY, z = StartPosition.z+PlacePosition }
+		elseif PlaceLocation == 'B'   and FillAlongAxis == "Z" then --top of new box
+			place_position = {x = StartPosition.x + math.floor(X_size / 2), y = FillEndPositionY, z = StartPosition.z+PlacePosition}
+		end
+		minetest.log("x","x,y,z:"..place_position.x..","..place_position.y..","..place_position.z)
+		minetest.log("log", "PlaceNode: "..PlaceNode)
+		minetest.set_node(place_position, {name = PlaceNode})
+	end
   minetest.log("log","end")
     return EndPosition
 end
 
 --local StartPosition = {x = 0, y = -10, z = 0}
-local X_size = 2
-local Y_size = -30
-local Z_size = 2
-local FillAlongAxis = "Y"
-local ReplaceWith = "air"
+local X_size = 10
+local Y_size = 3
+local Z_size = 3
+local FillAlongAxis = "X"
+local ReplaceWith = "default:stone"
 local PlaceNode = "default:cobble"
 local PlaceLocation = "T"
+local PlacePosition = 5
 
 minetest.register_node("scripted_world_editor:script_runner", {
     description = "Script Runner",
     tiles = {"script_runner.png"},
     groups = {cracky = 3, oddly_breakable_by_hand = 1},
     on_punch = function(pos, node, puncher)
-         fill_box(pos, X_size, Y_size, Z_size, FillAlongAxis, ReplaceWith, PlaceNode, PlaceLocation)
+         fill_box(pos, X_size, Y_size, Z_size, FillAlongAxis, ReplaceWith, PlaceNode, PlaceLocation, PlacePosition)
     end,
 })
 
