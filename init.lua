@@ -1,3 +1,23 @@
+
+function move(StartPosition, Axis, Distance)
+    local EndPosition = vector.new(StartPosition.x, StartPosition.y, StartPosition.z)
+    
+    -- Adjust the appropriate axis based on the Axis parameter
+    if Axis == "x" then
+        EndPosition.x = EndPosition.x + Distance
+    elseif Axis == "y" then
+        EndPosition.y = EndPosition.y + Distance
+    elseif Axis == "z" then
+        EndPosition.z = EndPosition.z + Distance
+    else
+        -- Handle invalid axis (optional)
+        print("Invalid axis specified")
+    end
+    
+    return EndPosition
+end
+
+
 function fill_box(StartPosition, X_size, Y_size, Z_size, FillAlongAxis, ReplaceWith, PlaceNode, PlaceLocation, PlacePosition)
     minetest.log("log","start")
 	local EndPosition = vector.new(StartPosition.x, StartPosition.y, StartPosition.z)
@@ -11,9 +31,21 @@ function fill_box(StartPosition, X_size, Y_size, Z_size, FillAlongAxis, ReplaceW
         EndPosition.z = EndPosition.z + Z_size
     end
 		--because we always add size, we adjust area to actual size by always subtracting -1.
-		FillEndPositionX= StartPosition.x + X_size -1 
-		FillEndPositionY= StartPosition.y + Y_size -1
-		FillEndPositionZ= StartPosition.z + Z_size -1
+		if X_size >= 0 then
+			FillEndPositionX= StartPosition.x + X_size -1
+		else 
+			FillEndPositionX= StartPosition.x + X_size +1
+		end
+		if Y_size >= 0 then
+			FillEndPositionY= StartPosition.y + Y_size -1
+		else 
+			FillEndPositionY= StartPosition.y + Y_size +1
+		end
+		if Z_size >= 0 then
+			FillEndPositionZ= StartPosition.z + Z_size -1
+		else 
+			FillEndPositionZ= StartPosition.z + Z_size +1
+		end
 		
     -- Fill the area with new nodes
 	    minetest.log("x","StartPositionX:"..StartPosition.x)
@@ -41,21 +73,6 @@ function fill_box(StartPosition, X_size, Y_size, Z_size, FillAlongAxis, ReplaceW
 	if(PlaceNode ~= nil and PlaceLocation ~= nil and PlacePosition ~= nil) then
     -- Place the special single node at the specified location
 		local place_position
-		--[[
-		if PlaceLocation == 'T' and FillAlongAxis == "Y" then  --top of new box
-			place_position = vector.new(FillEndPositionX, StartPosition.y + (PlacePosition), StartPosition.z + math.floor(Z_size / 2))
-		elseif PlaceLocation == 'B' and FillAlongAxis == "Y" then  --top of new box
-			place_position = vector.new(StartPosition.x, StartPosition.y + (PlacePosition), StartPosition.z + math.floor(Z_size / 2))
-		elseif PlaceLocation == 'T'   and FillAlongAxis == "X" then --top of new box
-			place_position = vector.new(FillEndPositionX + PlacePosition, FillEndPositionY, StartPosition.z + math.floor(Z_size / 2))
-		elseif PlaceLocation == 'B'   and FillAlongAxis == "X" then --top of new box
-			place_position = vector.new(StartPosition.x + PlacePosition, StartPosition.y, StartPosition.z + math.floor(Z_size / 2))
-		elseif PlaceLocation == 'T'   and FillAlongAxis == "Z" then --top of new box
-			place_position = vector.new( StartPosition.x + math.floor(X_size / 2), FillEndPositionY, FillEndPositionZ)
-		elseif PlaceLocation == 'B'   and FillAlongAxis == "Z" then --top of new box
-			place_position = vector.new( StartPosition.x + math.floor(X_size / 2), FillEndPositionY, StartPosition.z)
-		end
-		]]
 		if PlaceLocation == 'T' and FillAlongAxis == "Y" then  --top of new box
 			place_position = {x = FillEndPositionX, y = StartPosition.y + (PlacePosition), z = StartPosition.z + math.floor(Z_size / 2)}
 		elseif PlaceLocation == 'B' and FillAlongAxis == "Y" then  --top of new box
@@ -77,6 +94,31 @@ function fill_box(StartPosition, X_size, Y_size, Z_size, FillAlongAxis, ReplaceW
     return EndPosition
 end
 
+function run_script(StartPosition, script_table)
+    --sequentially runs all commands in the table along with their corresponding parameters.
+	--called functions return an EndPosition value which should be passed in to the next row/function in the table until all the functions have been executed.
+	local current_position = StartPosition
+
+    for i, func_data in ipairs(script_table) do
+        local func_name = func_data[1]
+        local func_params = {StartPosition}
+        for j = 2, #func_data do
+            table.insert(func_params, func_data[j])
+        end
+
+        if func_name == "move" then
+            current_position = move(unpack(func_params))
+        elseif func_name == "fill_box" then
+            current_position = fill_box(unpack(func_params))
+        else
+            print("Unknown function:", func_name)
+        end
+
+        StartPosition = current_position
+    end
+end
+
+
 --local StartPosition = {x = 0, y = -10, z = 0}
 local X_size = 3
 local Y_size = 8
@@ -87,16 +129,27 @@ local PlaceNode = "default:cobble"
 local PlaceLocation = "B"
 local PlacePosition = 4
 
+-- Example script table
+local script_table = {
+    {"fill_box", 3, -10, 3, "Y", "air", "default:mese_post_light", "T", -5},
+    {"move", "x", -1},
+    {"fill_box", 6, 4, 3, "X", "air", nil, nil, nil},
+	{"fill_box", 1, 4, 3, "X", "default:cobble", nil, nil, nil},
+	{"fill_box", 10, 4, 3, "X", "air", "default:mese_post_light", "T", 5},
+}
+
+-- Example StartPosition
+local StartPosition = {x = 0, y = 0, z = 0}
+
 minetest.register_node("scripted_world_editor:script_runner", {
     description = "Script Runner",
     tiles = {"script_runner.png"},
     groups = {cracky = 3, oddly_breakable_by_hand = 1},
     on_punch = function(pos, node, puncher)
-         fill_box(pos, X_size, Y_size, Z_size, FillAlongAxis, ReplaceWith, PlaceNode, PlaceLocation, PlacePosition)
+        -- fill_box(pos, X_size, Y_size, Z_size, FillAlongAxis, ReplaceWith, PlaceNode, PlaceLocation, PlacePosition)
+		run_script(pos, script_table)
     end,
 })
 
 
 
---local EndPositionOut = fill_box(StartPosition, X_size, Y_size, Z_size, FillAlongAxis, ReplaceWith, PlaceNode, PlaceLocation)
-minetest.log("x","finished")
