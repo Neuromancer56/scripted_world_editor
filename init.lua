@@ -21,14 +21,18 @@ end
 function fill_box(StartPosition, X_size, Y_size, Z_size, FillAlongAxis, ReplaceWith, PlaceNode, PlaceLocation, PlacePosition)
     --minetest.log("log","start")
 	local EndPosition = vector.new(StartPosition.x, StartPosition.y, StartPosition.z)
+	local DirPositive = false
 	
     -- Adjust the start and end positions based on the FillAlongAxis and sizes
     if FillAlongAxis == 'X' then
         EndPosition.x = EndPosition.x + X_size
+		if X_size > 0 then DirPositive = true end
     elseif FillAlongAxis == 'Y' then
         EndPosition.y = EndPosition.y + Y_size
+		if Y_size > 0 then DirPositive = true end
     elseif FillAlongAxis == 'Z' then
         EndPosition.z = EndPosition.z + Z_size
+		if Z_size > 0 then DirPositive = true end
     end
 		--because we always add size, we adjust area to actual size by always subtracting -1.
 		if X_size >= 0 then
@@ -89,7 +93,7 @@ function fill_box(StartPosition, X_size, Y_size, Z_size, FillAlongAxis, ReplaceW
 		--minetest.log("x","x,y,z:"..place_position.x..","..place_position.y..","..place_position.z)
 		--minetest.log("log", "PlaceNode: "..PlaceNode)
 		local param2dir = 0
-		if (PlacePosition > 0) then param2dir = 2 end
+		if (DirPositive) then param2dir = 2 end
 		--minetest.log("x","param2dir: "..param2dir)
 		minetest.set_node(place_position, {name = PlaceNode, param2 = param2dir })
 	end
