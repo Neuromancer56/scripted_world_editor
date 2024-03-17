@@ -19,7 +19,7 @@ end
 
 
 function fill_box(StartPosition, X_size, Y_size, Z_size, FillAlongAxis, ReplaceWith, PlaceNode, PlaceLocation, PlacePosition)
-    minetest.log("log","start")
+    --minetest.log("log","start")
 	local EndPosition = vector.new(StartPosition.x, StartPosition.y, StartPosition.z)
 	
     -- Adjust the start and end positions based on the FillAlongAxis and sizes
@@ -48,12 +48,12 @@ function fill_box(StartPosition, X_size, Y_size, Z_size, FillAlongAxis, ReplaceW
 		end
 		
     -- Fill the area with new nodes
-	    minetest.log("x","StartPositionX:"..StartPosition.x)
-		minetest.log("x","FillEndPositionX:"..FillEndPositionX)
-		minetest.log("x","StartPositionY:"..StartPosition.y)
-		minetest.log("x","FillEndPositionY:"..FillEndPositionY)
-		minetest.log("x","StartPositionZ:"..StartPosition.z)
-		minetest.log("x","FillEndPositionZ:"..FillEndPositionZ)
+	    --minetest.log("x","StartPositionX:"..StartPosition.x)
+		--minetest.log("x","FillEndPositionX:"..FillEndPositionX)
+		--minetest.log("x","StartPositionY:"..StartPosition.y)
+		--minetest.log("x","FillEndPositionY:"..FillEndPositionY)
+		--minetest.log("x","StartPositionZ:"..StartPosition.z)
+		--minetest.log("x","FillEndPositionZ:"..FillEndPositionZ)
 
 		-- Determine the start and end points for each axis (always looping from the lower number to the larger number)
 		local startX, endX = math.min(StartPosition.x, FillEndPositionX), math.max(StartPosition.x, FillEndPositionX)
@@ -86,14 +86,14 @@ function fill_box(StartPosition, X_size, Y_size, Z_size, FillAlongAxis, ReplaceW
 		elseif PlaceLocation == 'B'   and FillAlongAxis == "Z" then --top of new box
 			place_position = {x = StartPosition.x + math.floor(X_size / 2), y = StartPosition.y, z = StartPosition.z+PlacePosition}
 		end
-		minetest.log("x","x,y,z:"..place_position.x..","..place_position.y..","..place_position.z)
-		minetest.log("log", "PlaceNode: "..PlaceNode)
-		local param2dir = 1
-		if (PlacePosition < 0) then param2dir = 3 end
-		minetest.log("x","param2dir: "..param2dir)
+		--minetest.log("x","x,y,z:"..place_position.x..","..place_position.y..","..place_position.z)
+		--minetest.log("log", "PlaceNode: "..PlaceNode)
+		local param2dir = 0
+		if (PlacePosition > 0) then param2dir = 2 end
+		--minetest.log("x","param2dir: "..param2dir)
 		minetest.set_node(place_position, {name = PlaceNode, param2 = param2dir })
 	end
-  minetest.log("log","end")
+ -- minetest.log("log","end")
     return EndPosition
 end
 
