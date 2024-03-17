@@ -88,7 +88,10 @@ function fill_box(StartPosition, X_size, Y_size, Z_size, FillAlongAxis, ReplaceW
 		end
 		minetest.log("x","x,y,z:"..place_position.x..","..place_position.y..","..place_position.z)
 		minetest.log("log", "PlaceNode: "..PlaceNode)
-		minetest.set_node(place_position, {name = PlaceNode})
+		local param2dir = 1
+		if (PlacePosition < 0) then param2dir = 3 end
+		minetest.log("x","param2dir: "..param2dir)
+		minetest.set_node(place_position, {name = PlaceNode, param2 = param2dir })
 	end
   minetest.log("log","end")
     return EndPosition
