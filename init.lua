@@ -101,9 +101,63 @@ function fill_box(StartPosition, X_size, Y_size, Z_size, FillAlongAxis, ReplaceW
     return EndPosition
 end
 
+function build_level(pos, x_size, y_size, z_size, boulder_chance, gem_chance, cobble_every_x, cobble_chance_x, cobble_every_y, cobble_chance_y, cobble_every_z, cobble_chance_z)
+    local minp = vector.new(pos)
+    local maxp = vector.add(minp, {x=x_size-1, y=y_size-1, z=z_size-1})
+    local manip = minetest.get_voxel_manip()
+
+    local emerged_pos1, emerged_pos2 = manip:read_from_map(minp, maxp)
+    local area = VoxelArea:new({MinEdge=emerged_pos1, MaxEdge=emerged_pos2})
+    local data = manip:get_data()
+
+    for z = pos.z, pos.z + z_size - 1 do
+        for y = pos.y, pos.y + y_size - 1 do
+            for x = pos.x, pos.x + x_size - 1 do
+                local vi = area:index(x, y, z)
+                local node = minetest.get_name_from_content_id(data[vi])
+
+                -- Replace nodes along outer surface
+                if x == pos.x or x == pos.x + x_size - 1 or
+                   y == pos.y or y == pos.y + y_size - 1 or
+                   z == pos.z or z == pos.z + z_size - 1 then
+                    data[vi] = minetest.get_content_id("xpanes:bar_flat")
+                else
+                    -- Default replacement node
+                    local replacement_node = "default:dirt"
+
+                    -- Check boulder_chance and gem_chance
+                    local random_chance = math.random()
+                    if random_chance <= boulder_chance then
+                        replacement_node = "boulders:boulder"
+                    elseif random_chance <= boulder_chance + gem_chance then
+                        replacement_node = "boulder_dig:gemstone" 
+                    else
+                        -- Check for cobblestone placement
+                        if x % cobble_every_x == 0 and math.random() <= cobble_chance_x then
+                            replacement_node = "default:cobble"
+                        elseif y % cobble_every_y == 0 and math.random() <= cobble_chance_y then
+                            replacement_node = "default:cobble"
+                        elseif z % cobble_every_z == 0 and math.random() <= cobble_chance_z then
+                            replacement_node = "default:cobble"
+                        end
+                    end
+
+                    data[vi] = minetest.get_content_id(replacement_node)
+                end
+            end
+        end
+    end
+
+    manip:set_data(data)
+    manip:write_to_map(true)
+end
+
+
 function run_script(StartPosition, script_table)
     --sequentially runs all commands in the table along with their corresponding parameters.
 	--called functions return an EndPosition value which should be passed in to the next row/function in the table until all the functions have been executed.
+	
+	--minetest.log("x","run_script")
 	local current_position = StartPosition
 
     for i, func_data in ipairs(script_table) do
@@ -117,7 +171,9 @@ function run_script(StartPosition, script_table)
             current_position = move(unpack(func_params))
         elseif func_name == "fill_box" then
             current_position = fill_box(unpack(func_params))
-        else
+        elseif func_name == "build_level" then
+			build_level(unpack(func_params))
+		else
             print("Unknown function:", func_name)
         end
 
@@ -157,6 +213,8 @@ minetest.register_node("scripted_world_editor:script_runner", {
 		run_script(pos, script_table)
     end,
 })
+
+
 
 
 
