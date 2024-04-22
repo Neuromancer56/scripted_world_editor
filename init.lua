@@ -101,8 +101,26 @@ function fill_box(StartPosition, X_size, Y_size, Z_size, FillAlongAxis, ReplaceW
     return EndPosition
 end
 
+function place_node(StartPosition, X_offset, Y_offset, Z_offset, ReplaceWith, ReturnToStart)
+	--minetest.log("x","start place_node")
+	local EndPosition = vector.new(StartPosition.x, StartPosition.y, StartPosition.z)
+	EndPosition.x = EndPosition.x + X_offset
+	EndPosition.y = EndPosition.y + Y_offset
+	EndPosition.z = EndPosition.z + Z_offset
+	--minetest.log("x","x,y,z:"..EndPosition.x..","..EndPosition.y..","..EndPosition.z)
+	minetest.set_node(EndPosition, {name = ReplaceWith})
+	--minetest.log("x","end place_node")
+	if ReturnToStart then
+		return StartPosition
+	else
+		return EndPosition
+	end
+end
+
+
 function build_level(pos, x_size, y_size, z_size, boulder_chance, gem_chance, cobble_every_x, cobble_chance_x, cobble_every_y, cobble_chance_y, cobble_every_z, cobble_chance_z)
-    local minp = vector.new(pos)
+    StartPosition = pos
+	local minp = vector.new(pos)
     local maxp = vector.add(minp, {x=x_size-1, y=y_size-1, z=z_size-1})
     local manip = minetest.get_voxel_manip()
 
@@ -150,6 +168,7 @@ function build_level(pos, x_size, y_size, z_size, boulder_chance, gem_chance, co
 
     manip:set_data(data)
     manip:write_to_map(true)
+	return StartPosition
 end
 
 
@@ -173,6 +192,8 @@ function run_script(StartPosition, script_table)
             current_position = fill_box(unpack(func_params))
         elseif func_name == "build_level" then
 			build_level(unpack(func_params))
+		elseif func_name == "place_node" then
+			place_node(unpack(func_params))
 		else
             print("Unknown function:", func_name)
         end
