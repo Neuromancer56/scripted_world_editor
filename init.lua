@@ -134,8 +134,12 @@ function build_level(pos, x_size, y_size, z_size, boulder_chance, gem_chance, co
                 local vi = area:index(x, y, z)
                 local node = minetest.get_name_from_content_id(data[vi])
 
-                -- Replace nodes along outer surface
-                if x == pos.x or x == pos.x + x_size - 1 or
+				
+				-- Check if it's the bottom level
+                if y == pos.y then
+                    data[vi] = minetest.get_content_id("default:steelblock")
+                -- Replace nodes along outer surface except the bottom
+                elseif x == pos.x or x == pos.x + x_size - 1 or
                    y == pos.y or y == pos.y + y_size - 1 or
                    z == pos.z or z == pos.z + z_size - 1 then
                     data[vi] = minetest.get_content_id("xpanes:bar_flat")
