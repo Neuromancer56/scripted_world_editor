@@ -18,8 +18,13 @@ function move(StartPosition, Axis, Distance)
 end
 
 
-function fill_box(StartPosition, X_size, Y_size, Z_size, FillAlongAxis, ReplaceWith, PlaceNode, PlaceLocation, PlacePosition)
-    --minetest.log("log","start")
+function fill_box(StartPosition, X_size, Y_size, Z_size, FillAlongAxis, ReplaceWith, PlaceNode, PlaceLocation, PlacePosition, ReturnToStart)
+        -- Set default value for ReturnToStart if not provided
+    if ReturnToStart == nil then
+        ReturnToStart = false
+    end
+
+	--minetest.log("log","start")
 	local EndPosition = vector.new(StartPosition.x, StartPosition.y, StartPosition.z)
 	local DirPositive = false
 	
@@ -98,7 +103,11 @@ function fill_box(StartPosition, X_size, Y_size, Z_size, FillAlongAxis, ReplaceW
 		minetest.set_node(place_position, {name = PlaceNode, param2 = param2dir })
 	end
  -- minetest.log("log","end")
-    return EndPosition
+	if ReturnToStart then
+		return StartPosition
+	else
+		return EndPosition
+	end
 end
 
 function place_node(StartPosition, X_offset, Y_offset, Z_offset, ReplaceWith, ReturnToStart)
