@@ -1,4 +1,22 @@
 
+local ScriptStartPosition
+
+local function deepcopy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[deepcopy(orig_key)] = deepcopy(orig_value)
+        end
+        setmetatable(copy, deepcopy(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
+
 function move(StartPosition, Axis, Distance)
     local EndPosition = vector.new(StartPosition.x, StartPosition.y, StartPosition.z)
     
@@ -116,7 +134,9 @@ function place_node(StartPosition, X_offset, Y_offset, Z_offset, ReplaceWith, Re
 	EndPosition.x = EndPosition.x + X_offset
 	EndPosition.y = EndPosition.y + Y_offset
 	EndPosition.z = EndPosition.z + Z_offset
-	--minetest.log("x","x,y,z:"..EndPosition.x..","..EndPosition.y..","..EndPosition.z)
+	--[[if(ReplaceWith == "boulder_dig:exit" or ReplaceWith == "boulder_dig:exit_dormant") then
+		minetest.log("x","x,y,z:"..EndPosition.x..","..EndPosition.y..","..EndPosition.z)
+	end]]
 	minetest.set_node(EndPosition, {name = ReplaceWith})
 	--minetest.log("x","end place_node")
 	if ReturnToStart then
@@ -184,12 +204,16 @@ function build_level(pos, x_size, y_size, z_size, boulder_chance, gem_chance, co
 	return StartPosition
 end
 
+function move_to_script_start_position()
+	return ScriptStartPosition
+end
 
 function run_script(StartPosition, script_table)
     --sequentially runs all commands in the table along with their corresponding parameters.
 	--called functions return an EndPosition value which should be passed in to the next row/function in the table until all the functions have been executed.
 	
 	--minetest.log("x","run_script")
+	ScriptStartPosition = deepcopy(StartPosition)
 	local current_position = StartPosition
 
     for i, func_data in ipairs(script_table) do
@@ -207,11 +231,16 @@ function run_script(StartPosition, script_table)
 			build_level(unpack(func_params))
 		elseif func_name == "place_node" then
 			place_node(unpack(func_params))
+		elseif func_name == "move_to_script_start_position" then
+			move_to_script_start_position(unpack(func_params))
 		else
             print("Unknown function:", func_name)
         end
-
-        StartPosition = current_position
+		if (func_name=="move_to_script_start_position") then
+			StartPosition = ScriptStartPosition
+		else
+			StartPosition = current_position
+		end
     end
 end
 
