@@ -91,7 +91,12 @@ function fill_box(StartPosition, X_size, Y_size, Z_size, FillAlongAxis, ReplaceW
 		for x = startX, endX do
 			for y = startY, endY do
 				for z = startZ, endZ do
-					minetest.set_node({x = x, y = y, z = z}, {name = ReplaceWith})
+					if ReplaceWith == "default:ladder" then
+						minetest.set_node({x = x, y = y, z = z}, {name = ReplaceWith, param2 = 3})
+					else
+						minetest.set_node({x = x, y = y, z = z}, {name = ReplaceWith})
+					end
+					
 					--minetest.log("x","x,y,z:"..x..","..y..","..z)
 					--minetest.log("x","replacewith:"..ReplaceWith)
 				end
@@ -215,33 +220,36 @@ function run_script(StartPosition, script_table)
 	--minetest.log("x","run_script")
 	ScriptStartPosition = deepcopy(StartPosition)
 	local current_position = StartPosition
+	if(script_table == nil) then
+		return
+	else
+		for i, func_data in ipairs(script_table) do
+			local func_name = func_data[1]
+			local func_params = {StartPosition}
+			for j = 2, #func_data do
+				table.insert(func_params, func_data[j])
+			end
 
-    for i, func_data in ipairs(script_table) do
-        local func_name = func_data[1]
-        local func_params = {StartPosition}
-        for j = 2, #func_data do
-            table.insert(func_params, func_data[j])
-        end
-
-        if func_name == "move" then
-            current_position = move(unpack(func_params))
-        elseif func_name == "fill_box" then
-            current_position = fill_box(unpack(func_params))
-        elseif func_name == "build_level" then
-			build_level(unpack(func_params))
-		elseif func_name == "place_node" then
-			place_node(unpack(func_params))
-		elseif func_name == "move_to_script_start_position" then
-			move_to_script_start_position(unpack(func_params))
-		else
-            print("Unknown function:", func_name)
-        end
-		if (func_name=="move_to_script_start_position") then
-			StartPosition = ScriptStartPosition
-		else
-			StartPosition = current_position
+			if func_name == "move" then
+				current_position = move(unpack(func_params))
+			elseif func_name == "fill_box" then
+				current_position = fill_box(unpack(func_params))
+			elseif func_name == "build_level" then
+				build_level(unpack(func_params))
+			elseif func_name == "place_node" then
+				place_node(unpack(func_params))
+			elseif func_name == "move_to_script_start_position" then
+				move_to_script_start_position(unpack(func_params))
+			else
+				print("Unknown function:", func_name)
+			end
+			if (func_name=="move_to_script_start_position") then
+				StartPosition = ScriptStartPosition
+			else
+				StartPosition = current_position
+			end
 		end
-    end
+	end
 end
 
 
