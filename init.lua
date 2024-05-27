@@ -1,6 +1,6 @@
 
 local ScriptStartPosition
-
+--[[
 local function deepcopy(orig)
     local orig_type = type(orig)
     local copy
@@ -14,7 +14,7 @@ local function deepcopy(orig)
         copy = orig
     end
     return copy
-end
+end]]
 
 
 function move(StartPosition, Axis, Distance)
@@ -218,7 +218,8 @@ function run_script(StartPosition, script_table)
 	--called functions return an EndPosition value which should be passed in to the next row/function in the table until all the functions have been executed.
 	
 	--minetest.log("x","run_script")
-	ScriptStartPosition = deepcopy(StartPosition)
+	--ScriptStartPosition = deepcopy(StartPosition)
+	ScriptStartPosition = StartPosition
 	local current_position = StartPosition
 	if(script_table == nil) then
 		return
