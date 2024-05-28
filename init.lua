@@ -1,6 +1,6 @@
 
 local ScriptStartPosition
---[[
+
 local function deepcopy(orig)
     local orig_type = type(orig)
     local copy
@@ -14,7 +14,7 @@ local function deepcopy(orig)
         copy = orig
     end
     return copy
-end]]
+end
 
 
 function move(StartPosition, Axis, Distance)
@@ -135,18 +135,24 @@ end
 
 function place_node(StartPosition, X_offset, Y_offset, Z_offset, ReplaceWith, ReturnToStart)
 	--minetest.log("x","start place_node")
-	local EndPosition = vector.new(StartPosition.x, StartPosition.y, StartPosition.z)
+	
+	--local EndPosition = vector.new(StartPosition.x, StartPosition.y, StartPosition.z)
+	local EndPosition = deepcopy(StartPosition)
 	EndPosition.x = EndPosition.x + X_offset
 	EndPosition.y = EndPosition.y + Y_offset
 	EndPosition.z = EndPosition.z + Z_offset
 	--[[if(ReplaceWith == "boulder_dig:exit" or ReplaceWith == "boulder_dig:exit_dormant") then
 		minetest.log("x","x,y,z:"..EndPosition.x..","..EndPosition.y..","..EndPosition.z)
 	end]]
+	--minetest.log("x","StartPos x,y,z:"..StartPosition.x..","..StartPosition.y..","..StartPosition.z)
+	--minetest.log("x","EndPos x,y,z:"..EndPosition.x..","..EndPosition.y..","..EndPosition.z)
 	minetest.set_node(EndPosition, {name = ReplaceWith})
-	--minetest.log("x","end place_node")
+
 	if ReturnToStart then
+		--minetest.log("x","end place_node STARTPOS")	
 		return StartPosition
 	else
+		--minetest.log("x","end place_node ENDPOS")		
 		return EndPosition
 	end
 end
@@ -210,7 +216,8 @@ function build_level(pos, x_size, y_size, z_size, boulder_chance, gem_chance, co
 end
 
 function move_to_script_start_position()
-	return ScriptStartPosition
+	local resetPosition = deepcopy(ScriptStartPosition)
+	return resetPosition
 end
 
 function run_script(StartPosition, script_table)
@@ -218,8 +225,9 @@ function run_script(StartPosition, script_table)
 	--called functions return an EndPosition value which should be passed in to the next row/function in the table until all the functions have been executed.
 	
 	--minetest.log("x","run_script")
-	--ScriptStartPosition = deepcopy(StartPosition)
-	ScriptStartPosition = StartPosition
+	ScriptStartPosition = deepcopy(StartPosition)
+	--minetest.log("x","ORIG: x:"..StartPosition.x.." y:"..StartPosition.y.." z:"..StartPosition.z)
+	--ScriptStartPosition = StartPosition
 	local current_position = StartPosition
 	if(script_table == nil) then
 		return
@@ -236,19 +244,21 @@ function run_script(StartPosition, script_table)
 			elseif func_name == "fill_box" then
 				current_position = fill_box(unpack(func_params))
 			elseif func_name == "build_level" then
-				build_level(unpack(func_params))
+				current_position = build_level(unpack(func_params))
 			elseif func_name == "place_node" then
-				place_node(unpack(func_params))
+				current_position= place_node(unpack(func_params))
 			elseif func_name == "move_to_script_start_position" then
-				move_to_script_start_position(unpack(func_params))
+				current_position= move_to_script_start_position(unpack(func_params))
 			else
 				print("Unknown function:", func_name)
-			end
-			if (func_name=="move_to_script_start_position") then
-				StartPosition = ScriptStartPosition
-			else
+			end			
+			--if (func_name=="move_to_script_start_position") then			
+			--	StartPosition = deepcopy(ScriptStartPosition)				
+			--else
 				StartPosition = current_position
-			end
+			--end
+			--minetest.log("x",func_name)
+			--minetest.log("x","x:"..StartPosition.x.." y:"..StartPosition.y.." z:"..StartPosition.z)
 		end
 	end
 end
