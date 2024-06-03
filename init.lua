@@ -157,6 +157,16 @@ function place_node(StartPosition, X_offset, Y_offset, Z_offset, ReplaceWith, Re
 	end
 end
 
+function build_schematic(StartPosition, path)
+		minetest.log("x","schematic_path:"..path)
+		local schematic = minetest.read_schematic(path, {})
+		if schematic then 
+			flags_rotate = 0
+			flags_force_placement = true
+			success = minetest.place_schematic(StartPosition, schematic, flags_rotate, nil, flags_force_placement)
+		end
+		return StartPosition
+end
 
 function build_level(pos, x_size, y_size, z_size, boulder_chance, gem_chance, cobble_every_x, cobble_chance_x, cobble_every_y, cobble_chance_y, cobble_every_z, cobble_chance_z)
     StartPosition = pos
@@ -249,6 +259,8 @@ function run_script(StartPosition, script_table)
 				current_position= place_node(unpack(func_params))
 			elseif func_name == "move_to_script_start_position" then
 				current_position= move_to_script_start_position(unpack(func_params))
+			elseif func_name == "build_schematic" then
+				current_position= build_schematic(unpack(func_params))				
 			else
 				print("Unknown function:", func_name)
 			end			
@@ -262,7 +274,6 @@ function run_script(StartPosition, script_table)
 		end
 	end
 end
-
 
 --local StartPosition = {x = 0, y = -10, z = 0}
 local X_size = 3
